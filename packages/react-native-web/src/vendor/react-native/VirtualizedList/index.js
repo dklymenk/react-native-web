@@ -802,7 +802,11 @@ class VirtualizedList extends React.PureComponent<Props, State> {
     const end = getItemCount(data) - 1;
     let prevCellKey;
     last = Math.min(end, last);
-    for (let ii = first; ii <= last; ii++) {
+    for (
+      let ii = (!this.props.inverted ? first : last);
+      (!this.props.inverted ? ii <= last : ii >= first);
+      (!this.props.inverted ? ii++ : ii--)
+    ) { 
       const item = getItem(data, ii);
       const key = keyExtractor(item, ii);
       this._indicesToKeys.set(ii, key);
@@ -1443,16 +1447,19 @@ class VirtualizedList extends React.PureComponent<Props, State> {
       onEndReachedThreshold,
     } = this.props;
     const {contentLength, visibleLength, offset} = this._scrollMetrics;
-    const distanceFromEnd = contentLength - visibleLength - offset;
+    const distanceFromEnd = contentLength - visibleLength + offset;
     const threshold = onEndReachedThreshold
       ? onEndReachedThreshold * visibleLength
       : 2;
+    console.log({distanceFromEnd,threshold});
+    console.log({contentLength: this._scrollMetrics.contentLength, sentEndForContentLength: this._sentEndForContentLength});
     if (
       onEndReached &&
       this.state.last === getItemCount(data) - 1 &&
       distanceFromEnd < threshold &&
       this._scrollMetrics.contentLength !== this._sentEndForContentLength
     ) {
+      console.log('_maybeCallOnEndReached');
       // Only call onEndReached once for a given content length
       this._sentEndForContentLength = this._scrollMetrics.contentLength;
       onEndReached({distanceFromEnd});
@@ -2048,7 +2055,7 @@ function describeNestedLists(childList: {
 
 const styles = StyleSheet.create({
   verticallyInverted: {
-    transform: [{scaleY: -1}],
+    flexDirection: 'column-reverse',
   },
   horizontallyInverted: {
     transform: [{scaleX: -1}],
